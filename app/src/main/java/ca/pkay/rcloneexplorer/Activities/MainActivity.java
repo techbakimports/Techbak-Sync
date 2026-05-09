@@ -39,6 +39,7 @@ import androidx.preference.PreferenceManager;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.tabs.TabLayout;
 
 import org.json.JSONException;
 
@@ -103,6 +104,20 @@ public class MainActivity extends AppCompatActivity
     private DrawerLayout drawer;
     private Rclone rclone;
     private Fragment fragment;
+
+    // ── Tab system ──────────────────────────────────────────────────────────
+    private static class TabEntry {
+        final RemoteItem remote;
+        final String tag;
+        FileExplorerFragment fragment;
+        TabEntry(RemoteItem r) { remote = r; tag = "tab_" + System.nanoTime(); }
+    }
+    private final ArrayList<TabEntry> tabs = new ArrayList<>();
+    private int activeTab = -1;
+    private TabLayout tabLayout;
+    private View tabBar;
+    private boolean tabSwitching = false;
+    // ────────────────────────────────────────────────────────────────────────
     private Context context;
     private HashMap<Integer, RemoteItem> drawerPinnedRemoteIds;
     private int availableDrawerPinnedRemoteId;
@@ -137,6 +152,7 @@ public class MainActivity extends AppCompatActivity
         drawer = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        initTabSystem();
 
         rclone = new Rclone(this);
 
@@ -331,7 +347,8 @@ public class MainActivity extends AppCompatActivity
                 if (((FileExplorerFragment) fragment).onBackButtonPressed()) {
                     return;
                 } else {
-                    fragment = null;
+                    closeTab(activeTab);
+                    return;
                 }
             } else if(fragment instanceof TasksFragment){
                 startRemotesFragment();
@@ -438,6 +455,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void startFragment(Fragment fragmentToStart) {
+        clearAllTabs();
         fragment = fragmentToStart;
         FragmentManager fragmentManager = getSupportFragmentManager();
 
@@ -480,7 +498,143 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    // ── Tab system methods ───────────────────────────────────────────────────
+
+    private void initTabSystem() {
+        tabBar = findViewById(R.id.tab_bar);
+        tabLayout = findViewById(R.id.tab_layout);
+        View addBtn = findViewById(R.id.tab_add_btn);
+
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override public void onTabSelected(TabLayout.Tab tab) {
+                if (tabSwitching) return;
+                int idx = tab.getPosition();
+                if (idx != activeTab) switchToTab(idx);
+            }
+            @Override public void onTabUnselected(TabLayout.Tab tab) {}
+            @Override public void onTabReselected(TabLayout.Tab tab) {}
+        });
+
+        addBtn.setOnClickListener(v -> startRemotesFragment());
+    }
+
+    private void openOrSwitchTab(RemoteItem remote) {
+        for (int i = 0; i < tabs.size(); i++) {
+            if (tabs.get(i).remote.getName().equals(remote.getName())) {
+                if (i != activeTab) {
+                    tabSwitching = true;
+                    TabLayout.Tab t = tabLayout.getTabAt(i);
+                    if (t != null) t.select();
+                    tabSwitching = false;
+                    switchToTab(i);
+                }
+                return;
+            }
+        }
+
+        TabEntry entry = new TabEntry(remote);
+        FileExplorerFragment frag = FileExplorerFragment.newInstance(remote);
+        entry.fragment = frag;
+
+        FragmentTransaction tx = getSupportFragmentManager().beginTransaction();
+        if (activeTab >= 0 && activeTab < tabs.size() && tabs.get(activeTab).fragment != null) {
+            tx.hide(tabs.get(activeTab).fragment);
+        }
+        tx.add(R.id.flFragment, frag, entry.tag);
+        tx.commitAllowingStateLoss();
+
+        tabs.add(entry);
+        int newIdx = tabs.size() - 1;
+        activeTab = newIdx;
+        fragment = frag;
+
+        addTabToLayout(entry);
+        tabBar.setVisibility(View.VISIBLE);
+    }
+
+    private void addTabToLayout(TabEntry entry) {
+        TabLayout.Tab tab = tabLayout.newTab();
+        android.view.View customView = getLayoutInflater().inflate(R.layout.tab_item, null);
+        android.widget.TextView title = customView.findViewById(R.id.tab_title);
+        android.widget.ImageButton closeBtn = customView.findViewById(R.id.tab_close);
+
+        title.setText(entry.remote.getDisplayName());
+        closeBtn.setOnClickListener(v -> closeTab(tabs.indexOf(entry)));
+
+        tab.setCustomView(customView);
+        tabSwitching = true;
+        tabLayout.addTab(tab, true);
+        tabSwitching = false;
+    }
+
+    private void switchToTab(int index) {
+        if (index < 0 || index >= tabs.size()) return;
+
+        FragmentTransaction tx = getSupportFragmentManager().beginTransaction();
+        if (activeTab >= 0 && activeTab < tabs.size() && tabs.get(activeTab).fragment != null) {
+            tx.hide(tabs.get(activeTab).fragment);
+        }
+        TabEntry entry = tabs.get(index);
+        if (entry.fragment != null) tx.show(entry.fragment);
+        tx.commitAllowingStateLoss();
+
+        activeTab = index;
+        fragment = entry.fragment;
+
+        tabSwitching = true;
+        TabLayout.Tab t = tabLayout.getTabAt(index);
+        if (t != null && !t.isSelected()) t.select();
+        tabSwitching = false;
+    }
+
+    private void closeTab(int index) {
+        if (index < 0 || index >= tabs.size()) return;
+
+        TabEntry entry = tabs.get(index);
+        if (entry.fragment != null) {
+            getSupportFragmentManager().beginTransaction()
+                    .remove(entry.fragment).commitAllowingStateLoss();
+        }
+        tabs.remove(index);
+        tabSwitching = true;
+        tabLayout.removeTabAt(index);
+        tabSwitching = false;
+
+        if (tabs.isEmpty()) {
+            activeTab = -1;
+            fragment = null;
+            tabBar.setVisibility(View.GONE);
+            startRemotesFragment();
+            return;
+        }
+
+        int newActive = index < tabs.size() ? index : tabs.size() - 1;
+        activeTab = -1;
+        switchToTab(newActive);
+    }
+
+    private void clearAllTabs() {
+        if (tabBar != null) tabBar.setVisibility(View.GONE);
+        if (tabLayout != null) {
+            tabSwitching = true;
+            tabLayout.removeAllTabs();
+            tabSwitching = false;
+        }
+        if (!tabs.isEmpty()) {
+            FragmentTransaction tx = getSupportFragmentManager().beginTransaction();
+            for (TabEntry e : tabs) {
+                if (e.fragment != null) tx.remove(e.fragment);
+            }
+            tx.commitAllowingStateLoss();
+        }
+        tabs.clear();
+        activeTab = -1;
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+
     public void startRemotesFragment() {
+        clearAllTabs();
         fragment = RemotesFragment.newInstance();
         FragmentManager fragmentManager = getSupportFragmentManager();
 
@@ -588,41 +742,17 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onRemoteClick(RemoteItem remote) {
-        startRemote(remote, true);
+        openOrSwitchTab(remote);
+        AppShortcutsHelper.reportAppShortcutUsage(this, remote.getName());
     }
 
     private void startRemote(RemoteItem remote, boolean addToBackStack) {
-        fragment = FileExplorerFragment.newInstance(remote);
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.flFragment, fragment, FILE_EXPLORER_FRAGMENT_TAG);
-        if (addToBackStack) {
-            transaction.addToBackStack(null);
-        }
-        transaction.commit();
-
+        openOrSwitchTab(remote);
         AppShortcutsHelper.reportAppShortcutUsage(this, remote.getName());
-        //navigationView.getMenu().getItem(0).setChecked(false);
     }
 
     private void startPinnedRemote(RemoteItem remoteItem) {
-        if (fragment != null && fragment instanceof FileExplorerFragment) {
-            FragmentManager fragmentManager = getSupportFragmentManager();
-
-            // this is the case when remote gets started from a shortcut
-            // therefore back should exit the app, and not go into remotes screen
-            if (fragmentManager.getBackStackEntryCount() == 0) {
-                startRemote(remoteItem, false);
-            } else {
-                for (int i = 0; i < fragmentManager.getBackStackEntryCount(); i++) {
-                    fragmentManager.popBackStack();
-                }
-
-                startRemote(remoteItem, true);
-            }
-        } else {
-            startRemote(remoteItem, true);
-        }
-
+        openOrSwitchTab(remoteItem);
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
     }

@@ -1121,6 +1121,23 @@ public class FileExplorerFragment extends Fragment implements   FileExplorerRecy
         context = null;
     }
 
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        if (!hidden && breadcrumbView != null && remote != null) {
+            breadcrumbView.clearCrumbs();
+            breadcrumbView.addCrumb(remote.getDisplayName(), "//" + remoteName);
+            if (directoryObject != null &&
+                    !directoryObject.getCurrentPath().equals("//" + remoteName)) {
+                breadcrumbView.buildBreadCrumbsFromPath(directoryObject.getCurrentPath());
+            }
+            breadcrumbView.setVisibility(View.VISIBLE);
+            if (searchButton != null) {
+                searchButton.setVisibility(View.VISIBLE);
+            }
+        }
+    }
+
     public boolean onBackButtonPressed() {
         if (recyclerViewAdapter.isInSelectMode()) {
             recyclerViewAdapter.cancelSelection();

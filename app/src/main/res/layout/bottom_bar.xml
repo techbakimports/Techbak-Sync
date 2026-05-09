@@ -6,25 +6,28 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_gravity="bottom"
-    android:layout_margin="8dp"
+    android:layout_marginStart="12dp"
+    android:layout_marginEnd="12dp"
+    android:layout_marginBottom="8dp"
     tools:showIn="@layout/fragment_file_explorer_list"
     android:background="@android:color/transparent"
     android:visibility="gone"
     tools:visibility="visible">
 
     <com.google.android.material.card.MaterialCardView
-        style="@style/FileListBottomBars"
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:theme="@style/FileListBottomBars"
-        app:cardCornerRadius="@dimen/cardCornerRadius"
-        app:cardElevation="2dp"
-        app:strokeWidth="0dp">
+        app:cardBackgroundColor="?attr/colorSurfaceVariant"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp"
+        app:strokeWidth="1dp"
+        app:strokeColor="?attr/colorOutline">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
             <Space
                 android:layout_width="0dp"
@@ -34,27 +37,22 @@
             <LinearLayout
                 android:id="@+id/file_download"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:clickable="true"
                 android:focusable="true"
-                android:gravity="center_horizontal"
-                android:orientation="vertical">
+                android:background="?selectableItemBackgroundBorderless"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp">
 
                 <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
                     android:contentDescription="@string/download"
-                    android:paddingTop="6dp"
-                    android:src="@drawable/ic_file_download" />
+                    android:src="@drawable/ic_file_download"
+                    android:tint="?attr/colorPrimary" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp"
-                    android:paddingBottom="10dp"
-                    android:text="@string/download"
-                    android:textSize="12sp" />
             </LinearLayout>
 
             <Space
@@ -65,28 +63,22 @@
             <LinearLayout
                 android:id="@+id/file_move"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="?selectableItemBackgroundBorderless"
+                android:layout_height="match_parent"
                 android:clickable="true"
                 android:focusable="true"
-                android:gravity="center_horizontal"
-                android:orientation="vertical">
+                android:background="?selectableItemBackgroundBorderless"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp">
 
                 <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
                     android:contentDescription="@string/move"
-                    android:paddingTop="6dp"
-                    android:src="@drawable/ic_folder_move" />
+                    android:src="@drawable/ic_folder_move"
+                    android:tint="?attr/colorPrimary" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp"
-                    android:paddingBottom="10dp"
-                    android:text="@string/move"
-                    android:textSize="12sp" />
             </LinearLayout>
 
             <Space
@@ -97,28 +89,22 @@
             <LinearLayout
                 android:id="@+id/file_rename"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="?selectableItemBackgroundBorderless"
+                android:layout_height="match_parent"
                 android:clickable="true"
                 android:focusable="true"
-                android:gravity="center_horizontal"
-                android:orientation="vertical">
+                android:background="?selectableItemBackgroundBorderless"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp">
 
                 <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
                     android:contentDescription="@string/rename"
-                    android:paddingTop="6dp"
-                    android:src="@drawable/ic_edit" />
+                    android:src="@drawable/ic_edit"
+                    android:tint="?attr/colorPrimary" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp"
-                    android:paddingBottom="10dp"
-                    android:text="@string/rename"
-                    android:textSize="12sp" />
             </LinearLayout>
 
             <Space
@@ -129,28 +115,22 @@
             <LinearLayout
                 android:id="@+id/file_delete"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="?selectableItemBackgroundBorderless"
+                android:layout_height="match_parent"
                 android:clickable="true"
                 android:focusable="true"
-                android:gravity="center_horizontal"
-                android:orientation="vertical">
+                android:background="?selectableItemBackgroundBorderless"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp">
 
                 <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
                     android:contentDescription="@string/delete"
-                    android:paddingTop="6dp"
-                    android:src="@drawable/ic_delete" />
+                    android:src="@drawable/ic_delete"
+                    android:tint="?attr/colorError" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp"
-                    android:paddingBottom="10dp"
-                    android:text="@string/delete"
-                    android:textSize="12sp" />
             </LinearLayout>
 
             <Space
